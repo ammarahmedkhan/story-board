@@ -1,0 +1,321 @@
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<script src="https://www.gstatic.com/firebasejs/5.0.1/firebase.js"></script>
+
+   <script type="text/javascript">
+     var username = "";
+    </script>
+
+      <div class="row">
+        <div class="col-6">
+<p>Writing and Commenting as :
+</p>
+<div id="currentname">
+        </div>
+</div></div>
+
+<!-- story posted dialog -->
+  <div id="id01" class="w3-modal">
+    <div class="w3-modal-content">
+      <div class="w3-container">
+        <span onclick="document.getElementById('id01').style.display='none'" class="w3-button w3-display-topright">&times;</span>
+        <p>Story Posted!</p>
+      </div>
+    </div>
+  </div>
+
+<!-- alias name set dialog -->
+<div id="aliaspopup" class="w3-modal">
+  <div class="w3-modal-content">
+    <header class="w3-container w3-teal"> 
+      <span onclick="setAliasName()" 
+      class="w3-closebtn">&times;</span>
+      <h2>Enter an Alias name :</h2>
+    </header>
+    <div class="w3-container">
+       <input id="alias-name" type="text"></input>
+    <button onclick="setAliasName()" class="w3-btn">Set Alias name</button>
+    </div>
+    <footer class="w3-container w3-teal">
+      <p></p>
+    </footer>
+  </div>
+</div>
+
+
+
+<div id="loader"></div>
+<button class="tablink" 
+        id="defaultOpen" 
+        onclick="openPage('Write', this, 'Bisque')" >Write</button>
+<button class="tablink"  onclick="openPage('Read', this, 'BurlyWood')">Read</button>
+
+
+<div id="Write" class="tabcontent">
+<div id="editor"></div>
+<button id="post" onClick="postStory()">post</button>
+  
+<script type="text/javascript">
+document.getElementById('aliaspopup').style.display='block';
+  function setAliasName(){
+    document.getElementById('aliaspopup').style.display='none';
+
+var name =     document.getElementById('alias-name').value;
+    
+//this one is the only place it'll live    
+if(name===""){
+  name = "guest";
+  
+} 
+    document.getElementById('currentname').innerHTML=name;
+
+username = name;
+
+  }
+  
+  
+  function postStory(){
+  var text =       document.getElementById("editor").innerHTML;
+  var el = document.createElement( 'html' );
+el.innerHTML = text;
+
+  var obj=el.getElementsByClassName("ql-editor");
+//console.log(obj[0].innerHTML);
+// Get saved data from sessionStorage
+
+var name = document.getElementById('currentname').value;
+
+        var story = { 
+"name" : username, 
+"createdAt" : new Date().toUTCString(),
+"story" : obj[0].innerHTML
+}
+
+    pushStorytoFirebase(story);
+   document.getElementById('id01').style.display='block';
+    
+    
+    setTimeout(function(){ 
+    window.location.href = "https://codepen.io/ammarahmedkhan/full/PoKjyKa";
+}, 2000);
+
+
+
+//push to firebase
+//  editor.dangerouslyPasteHTML('');
+}
+</script>
+
+</div>
+
+<div id="Read" class="tabcontent">
+  <h3>Read</h3>
+  <p>Loading...</p>
+</div>
+
+
+
+<script>
+function openPage(pageName,elmnt,color) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablink");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].style.backgroundColor = "";
+  }
+  document.getElementById(pageName).style.display = "block";
+  elmnt.style.backgroundColor = color;
+  
+  if(pageName === "Read")
+{
+//document.getElementById(pageName).innerHTML=`<p> baby shark do do dodo</p>`;
+}
+
+  
+}
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+   document.getElementById("loader").style.display = "none";
+  
+</script>
+
+
+
+
+<script>
+  // Initialize Firebase
+  // TODO: Replace with your project's customized code snippet
+   const firebaseConfig = {
+    apiKey: "AIzaSyCpsac9VVt5uE0AF2MVk8kSVMAWFcewFfM",
+    authDomain: "auth-practice-4b9a7.firebaseapp.com",
+    databaseURL: "https://auth-practice-4b9a7-default-rtdb.firebaseio.com",
+    projectId: "auth-practice-4b9a7",
+    storageBucket: "auth-practice-4b9a7.appspot.com",
+    messagingSenderId: "677785265170",
+    appId: "1:677785265170:web:a3a6f44134e47c836fa4cb",
+    measurementId: "G-PYBLC4DJX2"
+  };
+  
+  firebase.initializeApp(firebaseConfig);
+//https://medium.com/@masterimoo/to-add-firebase-to-you-javascript-project-f3638eecdf7b
+/*  
+
+*/
+  
+  function postComment(event){
+var id = event.target.id;
+var commentText = document.getElementById(id).value;
+var commentBy = 
+document.getElementById('currentname').value; 
+//console.log(username);
+var comment = {
+"storyId" : id, 
+"name" : username, 
+"createdAt" : new Date().toUTCString(),
+"comment" : commentText
+}
+//push comment to db
+firebase.database().ref('/comments').push(comment);
+
+    getFirebaseData();
+    
+}
+  
+function arrayAggregation(storiesArray,
+                        commentsArray){
+
+//unique keys for iteration purposes
+var allStoryKeys = Object.keys(storiesArray);
+var allCommentKeys = Object.keys(commentsArray);
+var storyComments = [];
+  
+  
+//joining the stories and comments thru primary
+//key. equivalent to an inner join
+for(var i=0;i<allCommentKeys.length;i++){
+var comment = commentsArray[allCommentKeys[i]];
+if(storyComments[comment.storyId] !==undefined)
+{storyComments[comment.storyId].push(comment);}
+else
+{storyComments[comment.storyId]=[comment];}
+}
+  
+  
+  
+if (storiesArray !== null) {
+var keys = Object.keys(storiesArray);
+console.log(storiesArray[keys[0]]);
+var stories = "";
+  var comments = "";
+  var textareaid = "";
+  var commentsPerStory = [];
+
+
+  
+for(var i=0;i<keys.length;i++){
+textareaid = keys[i];
+
+  
+  if(storyComments[textareaid] !== undefined){
+    commentsPerStory = storyComments[textareaid];
+for(var j=0;j<commentsPerStory.length;j++){
+comments = 
+comments + 
+`
+<!-- this is the comment section -->
+      <div class="row">
+        <div class="col-6">
+<p>comment posted by : <i> ` + commentsPerStory[j].name + ` </i></p>
+      <b>` + 
+commentsPerStory[j].comment + `</b>
+
+</div>
+</div>`   
+  ;
+}
+  }
+
+  stories = stories + 
+`
+<section id="app">
+
+    <div class="container" >
+
+  <div class="w3-panel w3-leftbar w3-sand w3-serif">
+<p class="w3-large"> Written by:` +  storiesArray[keys[i]].name + 
+  
+`</p>` +  storiesArray[keys[i]].story 
+    + `
+ 
+  </div>
+  
+<div class="row">
+      ` +  `
+        <div class="col-6">
+          <div class="comment">
+                 </div><!--End Comment-->
+          </div><!--End col -->
+          </div><!-- End row -->
+`+  comments  +`
+
+      <div class="row">
+        <div class="col-6">
+      <textarea type="text" id="` + textareaid + `"
+      class="input" placeholder="Write a comment" >`
++ 
+`</textarea>
+          <button id="` + textareaid + `"class='primaryContained float-right' onClick = "postComment(event)">Add Comment</button>
+                  </div><!-- End col -->
+      </div><!--End Row -->
+    </div><!--End Container -->
+  </section>
+`
+;
+
+
+comments = "";
+}
+document.getElementById("Read").innerHTML=stories;
+     } 
+  
+}
+  getFirebaseData();
+//data from firebase   
+function getFirebaseData(){
+//set the loader
+  document.getElementById("loader").style.display = "block";
+  
+var key = "/stories/";
+var database = firebase.database();
+var userdata = database.ref(key);
+userdata.on("value", (snapshot) => {
+const storiesArray = snapshot.val();
+  
+key = "/comments/";
+database = firebase.database();
+userdata = database.ref(key);
+userdata.on("value", (snapshot) => {
+const commentsArray = snapshot.val();
+
+ //un-set the loader
+  document.getElementById("loader").style.display = "none";
+ 
+  arrayAggregation(storiesArray,commentsArray)
+  
+});///this is where the story aggregator runs
+});
+}
+  
+  function pushStorytoFirebase(obj){
+
+firebase.database().ref('/stories').push(  
+obj
+);
+    
+    
+  }
+  
+</script>
